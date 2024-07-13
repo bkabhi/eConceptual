@@ -1,8 +1,6 @@
-// apiConfig.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
-const API_URL = 'https://econceptual-interview-mock.vercel.app/api';
+import { API_URL } from "@env"
 
 export const getToken = async () => await AsyncStorage.getItem('token');
 

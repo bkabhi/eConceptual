@@ -3,7 +3,6 @@ import api, { getHeaders } from './apiConfig';
 
 export const login = async (email: string, password: string) => {
     const response = await api.post('/login', { email, password });
-    console.log(response.data);
     const token = response.data.token;
     AsyncStorage.setItem('token', token);
     return token;

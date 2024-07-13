@@ -4,7 +4,15 @@ import { useNavigation } from '@react-navigation/native';
 import { fetchProfile, logout, updateProfile } from '../../api';
 import { RootNavigationList } from '../../navigation/RootNavigation/RootNavigator';
 
-const initForm = () => ({
+interface Profile {
+  name: string;
+  email: string;
+  city: string;
+  pincode: string;
+  country: string;
+}
+
+const initForm: () => Profile = () => ({
   name: '',
   email: '',
   city: '',
@@ -13,9 +21,9 @@ const initForm = () => ({
 })
 
 export const ProfileScreen = () => {
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<Profile|null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState(initForm());
+  const [form, setForm] = useState<Profile>(initForm());
   const navigation = useNavigation();
 
   const loadProfile = async () => {
@@ -40,7 +48,8 @@ export const ProfileScreen = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setForm(profile);
+    if (profile)
+      setForm(profile);
   };
 
   const handleLogout = async () => {
@@ -76,7 +85,7 @@ export const ProfileScreen = () => {
             placeholder="Email"
             value={form.email}
             onChangeText={(text) => setForm({ ...form, email: text })}
-            editable={false}
+            // editable={false}
           />
           <TextInput
             style={styles.input}
@@ -107,11 +116,11 @@ export const ProfileScreen = () => {
         <>
           <Text style={styles.title}>Profile</Text>
           <View style={styles.card}>
-            <Text style={styles.label}>Name: {profile.name}</Text>
-            <Text style={styles.label}>Email: {profile.email}</Text>
-            <Text style={styles.label}>City: {profile.city}</Text>
-            <Text style={styles.label}>Pincode: {profile.pincode}</Text>
-            <Text style={styles.label}>Country: {profile.country}</Text>
+            <Text style={styles.label}>Name: {profile?.name}</Text>
+            <Text style={styles.label}>Email: {profile?.email}</Text>
+            <Text style={styles.label}>City: {profile?.city}</Text>
+            <Text style={styles.label}>Pincode: {profile?.pincode}</Text>
+            <Text style={styles.label}>Country: {profile?.country}</Text>
           </View>
           <View style={styles.buttonContainer}>
             <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
@@ -134,10 +143,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     marginBottom: 24,
+    color: 'black',
   },
   label: {
     fontSize: 18,
     marginVertical: 4,
+    color: 'black',
   },
   input: {
     borderWidth: 1,
@@ -146,6 +157,8 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 4,
     width: '100%',
+    backgroundColor: '#f0f0f0',
+    color: 'black',
   },
   buttonContainer: {
     flexDirection: 'row',
