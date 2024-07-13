@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { fetchProfile, logout, updateProfile } from '../../api';
 import { RootNavigationList } from '../../navigation/RootNavigation/RootNavigator';
@@ -21,9 +21,11 @@ const initForm: () => Profile = () => ({
 })
 
 export const ProfileScreen = () => {
-  const [profile, setProfile] = useState<Profile|null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState<Profile>(initForm());
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const navigation = useNavigation();
 
   const loadProfile = async () => {
@@ -32,17 +34,23 @@ export const ProfileScreen = () => {
       setProfile(data);
       setForm(data);
     } catch (e) {
-      console.error('Failed to fetch profile', e);
+      Alert.alert('Error', 'Failed to fetch profile');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpdate = async () => {
+    setSaving(true);
     try {
       const updatedProfile = await updateProfile(form);
       setProfile(updatedProfile);
       setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully');
     } catch (e) {
-      console.error('Failed to update profile', e);
+      Alert.alert('Error', 'Failed to update profile');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -53,7 +61,7 @@ export const ProfileScreen = () => {
   };
 
   const handleLogout = async () => {
-    await logout()
+    await logout();
     navigation.navigate(RootNavigationList.LOGIN);
   };
 
@@ -61,10 +69,10 @@ export const ProfileScreen = () => {
     loadProfile();
   }, []);
 
-  if (!profile) {
+  if (loading) {
     return (
       <View style={styles.container}>
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
@@ -77,12 +85,14 @@ export const ProfileScreen = () => {
           <TextInput
             style={styles.input}
             placeholder="Name"
+            placeholderTextColor="#888"
             value={form.name}
             onChangeText={(text) => setForm({ ...form, name: text })}
           />
           <TextInput
             style={styles.input}
             placeholder="Email"
+            placeholderTextColor="#888"
             value={form.email}
             onChangeText={(text) => setForm({ ...form, email: text })}
             // editable={false}
@@ -90,26 +100,32 @@ export const ProfileScreen = () => {
           <TextInput
             style={styles.input}
             placeholder="City"
+            placeholderTextColor="#888"
             value={form.city}
             onChangeText={(text) => setForm({ ...form, city: text })}
           />
           <TextInput
             style={styles.input}
             placeholder="Pincode"
+            placeholderTextColor="#888"
             keyboardType="numeric"
-            value={form?.pincode?.toString()}
+            value={form.pincode.toString()}
             onChangeText={(text) => setForm({ ...form, pincode: text })}
           />
           <TextInput
             style={styles.input}
             placeholder="Country"
+            placeholderTextColor="#888"
             value={form.country}
             onChangeText={(text) => setForm({ ...form, country: text })}
           />
           <View style={styles.buttonContainer}>
-            <Button title="Save" onPress={handleUpdate} />
-            <View style={styles.buttonSpacer} />
-            <Button title="Cancel" onPress={handleCancel} />
+            <TouchableOpacity style={styles.button} onPress={handleUpdate} disabled={saving}>
+              <Text style={styles.buttonText}>{saving ? 'Saving...' : 'Save'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </>
       ) : (
@@ -123,9 +139,12 @@ export const ProfileScreen = () => {
             <Text style={styles.label}>Country: {profile?.country}</Text>
           </View>
           <View style={styles.buttonContainer}>
-            <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
-            <View style={styles.buttonSpacer} />
-            <Button title="Logout" onPress={handleLogout} />
+            <TouchableOpacity style={styles.button} onPress={() => setIsEditing(true)}>
+              <Text style={styles.buttonText}>Edit Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+              <Text style={styles.buttonText}>Logout</Text>
+            </TouchableOpacity>
           </View>
         </>
       )}
@@ -139,34 +158,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    backgroundColor: '#f5f5f5',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     marginBottom: 24,
-    color: 'black',
+    color: '#333',
   },
   label: {
     fontSize: 18,
     marginVertical: 4,
-    color: 'black',
+    color: '#333',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 8,
+    padding: 12,
     marginVertical: 8,
-    borderRadius: 4,
+    borderRadius: 8,
     width: '100%',
-    backgroundColor: '#f0f0f0',
-    color: 'black',
+    backgroundColor: '#fff',
+    color: '#333',
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     marginTop: 16,
+    width: '100%',
   },
-  buttonSpacer: {
-    width: 16,
+  button: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: '#007BFF',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#6c757d',
+    marginLeft: 10,
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    marginLeft: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
   card: {
     width: '100%',
@@ -174,7 +211,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
 });

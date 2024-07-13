@@ -44,7 +44,7 @@ export const ProductListScreen = () => {
         renderItem={({ item }) => <ProductCard key={item?.id?.toString()} product={item} />}
         keyExtractor={(item) => item?.id?.toString()}
         onEndReached={loadMore}
-        onEndReachedThreshold={0.000001}
+        onEndReachedThreshold={0.01}
         initialNumToRender={10}
         ListEmptyComponent={() => {
           return isLoading ? <View style={styles.container}>
